@@ -1,0 +1,22 @@
+model ==> language, output, how it works, which project and run type, other setting
+
+English word:
+tflu_fp32_en_word.cc ==>En, words, ok(down, left), tflu_kws_arm_rt(1/25(s)), (1,1,70)
+tflu_fp32_en_word.cc ==>En, words, bad(down, left, on, off), tflu_kws_arm_rt_mc(1(s)), (25,1,20)
+tflu_fp32_word_en_dscn.cc ==>En, words, ok(down, left), tflu_kws_arm_rt_mc(1(s)), (49,1,20) 
+
+English number:
+tflu_fp32_en_num.cc ==>En, numbers, good, tflu_kws_arm_rt(1/25(s)), (1,1,70)
+tflu_fp32_en_num.cc ==>En, numbers, ok (three, nine), tflu_kws_arm_rt_mc(1(s)), (25,1,20)
+tflu_fp32_en_num_para.cc is the same (_para is sample process parameters from model training)
+
+tflu_fp32_number_en_dscn.cc ==> En, numbers, good, tflu_kws_arm_rt_mc(1(s)), (49,1,20)
+tflu_fp32_number_en_dscn_para.cc is the same
+
+Chinese number1~4, but only 1 user data, so it doesn't work for others.
+tflu_fp32_cn_num1to4_ct8_2.cc ==> Ch, numbers 1~4, very good, tflu_kws_arm_rt(1/25(s)), (1,1,80)
+
+
+
+
+
