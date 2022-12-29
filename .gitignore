@@ -1,3 +1,7 @@
+# Keil
+EventRecorderStub.scvd
+*.uvguix.*
+
 lst/
 obj/
 .ipynb_checkpoints/
