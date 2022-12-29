@@ -521,7 +521,7 @@
             <File>
               <FileName>tflu_fp32_cn_num1to4_ct8_2.cc</FileName>
               <FileType>8</FileType>
-              <FilePath>..\..\..\..\..\..\ML_m460bsp_tflu\SampleCode\tflu_kws_arm_mc\Generated\DNN\tflu_fp32_cn_num1to4_ct8_2.cc</FilePath>
+              <FilePath>..\Generated\DNN\tflu_fp32_cn_num1to4_ct8_2.cc</FilePath>
             </File>
           </Files>
         </Group>

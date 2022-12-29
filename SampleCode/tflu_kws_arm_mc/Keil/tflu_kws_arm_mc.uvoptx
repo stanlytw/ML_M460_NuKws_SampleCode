@@ -502,7 +502,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\..\..\..\..\..\ML_m460bsp_tflu\SampleCode\tflu_kws_arm_mc\Generated\DNN\tflu_fp32_cn_num1to4_ct8_2.cc</PathWithFileName>
+      <PathWithFileName>..\Generated\DNN\tflu_fp32_cn_num1to4_ct8_2.cc</PathWithFileName>
       <FilenameWithoutPath>tflu_fp32_cn_num1to4_ct8_2.cc</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
