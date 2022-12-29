@@ -1,0 +1,31 @@
+./objects/micro_error_reporter.o: \
+  ..\..\tensorflow\lite\micro\micro_error_reporter.cc \
+  ..\..\..\tflite_micro\tensorflow\lite\micro\micro_error_reporter.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\cstdarg \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\__config \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdarg.h \
+  ..\..\..\tflite_micro\tensorflow\lite\core\api\error_reporter.h \
+  ..\..\..\tflite_micro\tensorflow\lite\micro\compatibility.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\cstdint \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\stdint.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdint.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\new \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\__availability \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\cstddef \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\version \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stddef.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\__nullptr \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\cstdlib \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\stdlib.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdlib.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\exception \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\__memory\base.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\__debug \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\iosfwd \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\wchar.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\stddef.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\wchar.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\type_traits \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\__undef_macros \
+  ..\..\..\tflite_micro\tensorflow\lite\micro\debug_log.h \
+  ..\..\..\tflite_micro\tensorflow\lite\micro\micro_string.h

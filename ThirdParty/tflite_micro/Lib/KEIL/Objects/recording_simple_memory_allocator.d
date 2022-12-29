@@ -1,0 +1,37 @@
+./objects/recording_simple_memory_allocator.o: \
+  ..\..\tensorflow\lite\micro\recording_simple_memory_allocator.cc \
+  ..\..\..\tflite_micro\tensorflow\lite\micro\recording_simple_memory_allocator.h \
+  ..\..\..\tflite_micro\tensorflow\lite\micro\compatibility.h \
+  ..\..\..\tflite_micro\tensorflow\lite\micro\simple_memory_allocator.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\cstddef \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\__config \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\version \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stddef.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\__nullptr \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\cstdint \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\stdint.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdint.h \
+  ..\..\..\tflite_micro\tensorflow\lite\c\common.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\stdbool.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdbool.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\stddef.h \
+  ..\..\..\tflite_micro\tensorflow\lite\c\c_api_types.h \
+  ..\..\..\tflite_micro\tensorflow\lite\core\api\error_reporter.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\cstdarg \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdarg.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\new \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\__availability \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\cstdlib \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\stdlib.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdlib.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\exception \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\__memory\base.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\__debug \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\iosfwd \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\wchar.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\wchar.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\type_traits \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\libcxx\__undef_macros \
+  ..\..\..\tflite_micro\tensorflow\lite\kernels\internal\compatibility.h \
+  ..\..\..\tflite_micro\tensorflow\lite\kernels\op_macros.h \
+  ..\..\..\tflite_micro\tensorflow\lite\micro\debug_log.h
