@@ -20,8 +20,8 @@
 #define MODEL_H
 
 /* Use which model, please remember update the model */
-#define DNN
-//#define DSCNN
+//#define DNN
+#define DSCNN
 
 #include <cstdint>
 

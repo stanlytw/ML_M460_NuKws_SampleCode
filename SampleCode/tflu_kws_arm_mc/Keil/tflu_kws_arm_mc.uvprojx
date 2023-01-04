@@ -134,7 +134,7 @@
             <RunIndependent>0</RunIndependent>
             <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
             <Capability>1</Capability>
-            <DriverSelection>4107</DriverSelection>
+            <DriverSelection>4106</DriverSelection>
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>Bin\Nu_Link.dll</Flash2>
@@ -519,9 +519,9 @@
           <GroupName>Generated</GroupName>
           <Files>
             <File>
-              <FileName>tflu_fp32_cn_num1to4_ct8_2.cc</FileName>
+              <FileName>tflu_fp32_word_en_dscn.cc</FileName>
               <FileType>8</FileType>
-              <FilePath>..\Generated\DNN\tflu_fp32_cn_num1to4_ct8_2.cc</FilePath>
+              <FilePath>..\Generated\DS_CNN\tflu_fp32_word_en_dscn.cc</FilePath>
             </File>
           </Files>
         </Group>

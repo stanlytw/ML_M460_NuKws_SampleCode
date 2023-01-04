@@ -17,7 +17,7 @@ using namespace std;
 
 #include "KWS/kws.h"
 //Please update your raw keyword file to test the model.
-#include "raw/three_test_3.h"   
+#include "raw/right_1.h"   
 #include "BufAttributes.h"
 
 
@@ -205,30 +205,20 @@ int32_t main(void)
 
    printf("\nThis sample code run keyword spotting inference\n");
 	
-	//const char outputClass[12][8] = {
-  //     "Silence",
-  //     "Unknown",
-  //     "yes",
-  //     "no",
-  //     "up",
-  //     "down",
-  //     "left",
-  //     "right",
-  //     "on",
-  //     "off",
-  //     "stop",
-  //     "go"};
+	const char outputClass[12][8] = {
+       "Silence",
+       "Unknown",
+       "yes",
+       "no",
+       "up",
+       "down",
+       "left",
+       "right",
+       "on",
+       "off",
+       "stop",
+       "go"};
 	
-const char outputClass[12][8] = {
-      "Silence",
-      "Unknown",
-      "one",
-      "two",
-      "three",
-	    "four",
-      
-	"s"
-      };		 
 			 
 
    int16_t audioBuffer[] ALIGNMENT_ATTRIBUTE = WAVE_DATA;

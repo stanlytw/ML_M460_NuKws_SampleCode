@@ -502,8 +502,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Generated\DNN\tflu_fp32_cn_num1to4_ct8_2.cc</PathWithFileName>
-      <FilenameWithoutPath>tflu_fp32_cn_num1to4_ct8_2.cc</FilenameWithoutPath>
+      <PathWithFileName>..\Generated\DS_CNN\tflu_fp32_word_en_dscn.cc</PathWithFileName>
+      <FilenameWithoutPath>tflu_fp32_word_en_dscn.cc</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
