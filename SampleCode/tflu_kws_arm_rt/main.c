@@ -28,14 +28,14 @@ extern "C" {
 #define NAU8822     1
 
 
-static DMA_DESC_T DMA_TXDESC[2], DMA_RXDESC[2];
+static DMA_DESC_T DMA_RXDESC[2];
 
 //PDMA1
 static uint32_t audio_io_buffer1[BUFF_LEN*2];	
 static uint32_t audio_buffer[BUFF_LEN];	
 
-int16_t* AUDIO_BUFFER_IN;
-int16_t* AUDIO_BUFFER_OUT;
+//int16_t* AUDIO_BUFFER_IN;
+//int16_t* AUDIO_BUFFER_OUT;
 
 
 //KWS

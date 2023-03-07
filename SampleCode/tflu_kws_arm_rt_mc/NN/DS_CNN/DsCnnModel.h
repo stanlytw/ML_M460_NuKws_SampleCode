@@ -26,12 +26,14 @@
 #define DSCNNMODEL_H
 
 #define SAMP_FREQ 16000
+
 //#define FRAME_SHIFT_MS 20
 //#define FRAME_SHIFT (static_cast<int16_t>(SAMP_FREQ * 0.001 * FRAME_SHIFT_MS))
 //#define NUM_FRAMES 49
 //#define NUM_MFCC_COEFFS 10
 //#define FRAME_LEN_MS 40
 //#define FRAME_LEN (static_cast<int16_t>(SAMP_FREQ * 0.001 * FRAME_LEN_MS)) 
+
 #define MFCC_BUFFER_SIZE (NUM_FRAMES*NUM_MFCC_COEFFS)
 
 class DsCnnModel : public Model {

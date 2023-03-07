@@ -22,7 +22,7 @@
 #ifdef DNN
 
 #ifndef ACTIVATION_BUF_SZ
-#define ACTIVATION_BUF_SZ       (0x20000) /* default value of 128kiB */
+#define ACTIVATION_BUF_SZ       (0xA00) /* default value of 128kiB */
 #endif /* ACTIVATION_BUF_SZ */
 
 static uint8_t  _tensor_arena[ACTIVATION_BUF_SZ] ALIGNMENT_ATTRIBUTE;
