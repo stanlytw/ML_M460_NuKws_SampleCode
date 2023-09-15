@@ -12,7 +12,7 @@
 /*---------------------------------------------------------------------------------------------------------*/
 /* Global variables                                                                                        */
 /*---------------------------------------------------------------------------------------------------------*/
-#define BUFF_LEN        640 * 25
+#define BUFF_LEN        8000
 #define BUFF_HALF_LEN   (BUFF_LEN/2)
 
 /* Use LIN as source, undefine it if MIC is used */
@@ -26,7 +26,13 @@ typedef struct dma_desc_t
     uint32_t offset;
 } DMA_DESC_T;
 
+#ifdef  __cplusplus
+extern  "C" {
+#endif
 extern void PDMA_ResetTxSGTable(uint8_t id);
 extern void PDMA_ResetRxSGTable(uint8_t id);
 extern void PDMA_Init(void);
+#ifdef  __cplusplus
+}
+#endif	
 #endif

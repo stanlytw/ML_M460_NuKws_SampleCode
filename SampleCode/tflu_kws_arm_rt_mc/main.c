@@ -1,7 +1,7 @@
 /**************************************************************************//**
  * @file     main.c
  * @version  V3.00
- * @brief    This is an keyword spotting inference realtime V2. with TFLITE 
+ * @brief    This is an keyword spotting inference realtime V2. with TFLITE
  *           matching I2S demo with PDMA function connected with audio codec.
  *           This example can change different model, for example DNN & DS_CNN
  *           in Model.h #define.
@@ -15,29 +15,38 @@ using namespace std;
 
 #include "KWS/kws.h"
 #include "BufAttributes.h"
-
-extern "C" {
-
 #include <stdio.h>
 #include <string.h>
 #include "NuMicro.h"
 #include "config.h"
-
 #include <arm_math.h>
 
 
 #define NAU8822     1
+#define MATHPI  3.1415f
+#define SIN_SMAPLERATE_50K   50000
+#define SIN_FREQU_1K  1000
+
+//LED GPIO reltaed
+#define LED_RED                         PH4
 
 
+float fsin_val;
+uint16_t u16sin_val;
+uint16_t u16sample_cnt = 0;
+uint8_t  u8CurDesc = 1;
 static DMA_DESC_T DMA_RXDESC[2];
 
 //PDMA1
-static uint32_t audio_io_buffer1[BUFF_LEN*2];	
-static uint32_t audio_buffer[BUFF_LEN];	
+static uint32_t audio_io_buffer1[8000];	//32K
+static uint32_t audio_io_buffer2[8000];	//32K
+static uint32_t audio_buffer[BUFF_LEN];
+
+static uint32_t*  ptraudio_buffer = 0;
 
 int16_t* AUDIO_BUFFER_IN;
 int16_t* AUDIO_BUFFER_OUT;
-
+volatile uint8_t u8Count=0;
 
 
 //KWS
@@ -48,13 +57,18 @@ static volatile uint8_t s_u8pdmaIRQReIn = 0;
 static volatile uint8_t s_u8TxIdx = 0, s_u8RxIdx = 0;
 static volatile uint8_t s_u8CopyData = 0;
 
+#ifdef  __cplusplus
+extern  "C" {
+#endif
 void PDMA0_IRQHandler(void);
 void SYS_Init(void);
 void PDMA_Init(void);
 void I2C2_Init(void);
+void DAC_IRQHandler(void);
 
 #if NAU8822
 void I2C_WriteNAU8822(uint8_t u8Addr, uint16_t u16Data);
+void I2C_ReadNAU8822(uint8_t u8Addr, uint8_t* pu8Data);
 void NAU8822_Setup(void);
 #else
 uint8_t I2C_WriteMultiByteforNAU88L25(uint8_t u8ChipAddr, uint16_t u16SubAddr, const uint8_t *p, uint32_t u32Len);
@@ -63,51 +77,71 @@ void NAU88L25_Reset(void);
 void NAU88L25_Setup(void);
 #endif
 
-// 
-volatile uint8_t u8Count=0;
+#ifdef  __cplusplus
+}
+#endif
+
+//Keep these code temporarily for debug purpose
+void DAC_IRQHandler(void)
+{
+    if(DAC_GET_INT_FLAG(DAC0, 0))
+    {
+
+        if(u16sample_cnt==50)
+        {
+            u16sample_cnt = 0;
+        }
+        else
+        {
+            u16sample_cnt++;
+            fsin_val =  sinf(2*MATHPI*1000*(float)(u16sample_cnt)/50000);
+            u16sin_val = (uint16_t)((fsin_val+1)*64);
+            u16sin_val+=512;
+            DAC_WRITE_DATA(DAC0, 0, u16sin_val);
+
+            /*Clear the DAC conversion complete finish flag */
+            DAC_CLR_INT_FLAG(DAC0, 0);
+        }
+    }
+    return;
+}
 
 void PDMA0_IRQHandler(void)
 {
     uint32_t u32Status = PDMA_GET_INT_STATUS(PDMA0);
-	
-	  //printf("Start PDMA_IRQ, status=0x%x!!\n", u32Status);
-		
+
+    //printf("Start PDMA_IRQ, status=0x%x!!\n", u32Status);
+
     if (u32Status & 0x2) {
         if (PDMA_GET_TD_STS(PDMA0) & 0x2) {          /* channel 1 done */
             /* Copy RX data to TX buffer */
-					  if(PDMA0->CURSCAT[1] == (uint32_t)&DMA_RXDESC[0])
-					  {
-                for (int i=0;i<BUFF_LEN;i++) {
-									audio_buffer[i] = audio_io_buffer1[i];
+            LED_RED = 0;
+            if(PDMA0->CURSCAT[1] == (uint32_t)&DMA_RXDESC[0])
+            {
+                for (int i=0; i<BUFF_LEN; i++) {
+                    audio_buffer[i] = audio_io_buffer1[i];
                 }
-						}
-					  else if(PDMA0->CURSCAT[1] == (uint32_t)&DMA_RXDESC[1])
-					  {
-                for (int i=0;i<BUFF_LEN;i++) {
-									audio_buffer[i] = audio_io_buffer1[BUFF_LEN*1 + i*1];
+                ptraudio_buffer = (uint32_t*)(&audio_io_buffer1[0]);
+            }
+            else if(PDMA0->CURSCAT[1] == (uint32_t)&DMA_RXDESC[1])
+            {
+                for (int i=0; i<BUFF_LEN; i++) {
+                    audio_buffer[i] = audio_io_buffer2[i];
                 }
-						}
-        s_u8CopyData = 1;
-        PDMA_CLR_TD_FLAG(PDMA0, PDMA_TDSTS_TDIF1_Msk);	
-						
+                ptraudio_buffer = (uint32_t*)(&audio_io_buffer2[0]);
+            }
+            s_u8CopyData = 1;
+            LED_RED = 1;
+            PDMA_CLR_TD_FLAG(PDMA0, PDMA_TDSTS_TDIF1_Msk);
+
         }
-		
-        if (PDMA_GET_TD_STS(PDMA0) & 0x4) {          /* channel 2 done */
-            PDMA_CLR_TD_FLAG(PDMA0, PDMA_TDSTS_TDIF2_Msk);
-        }
+
     }
-		else
-		{
-			PDMA_CLR_ALIGN_FLAG(PDMA0, PDMA_ABTSTS_ABTIF1_Msk);
-		}
- 
+
+
 }
 
-
-
-
 #if NAU8822
-
 /*---------------------------------------------------------------------------------------------------------*/
 /*  Write 9-bit data to 7-bit address register of NAU8822 with I2C2                                        */
 /*---------------------------------------------------------------------------------------------------------*/
@@ -130,6 +164,7 @@ void I2C_WriteNAU8822(uint8_t u8Addr, uint16_t u16Data)
 
     I2C_STOP(I2C2);
 }
+
 
 /*---------------------------------------------------------------------------------------------------------*/
 /*  NAU8822 Settings with I2C interface                                                                    */
@@ -165,20 +200,26 @@ void NAU8822_Setup(void)
     I2C_WriteNAU8822(3,  0x07F);   /* Enable L/R main mixer, DAC */
     I2C_WriteNAU8822(4,  0x010);   /* 16-bit word length, I2S format, Stereo */
     I2C_WriteNAU8822(5,  0x000);   /* Companding control and loop back mode (all disable) */
-		
-		I2C_WriteNAU8822(6,  0x001);   /* Divide by 1, FS and BCLK are driven as outputs, 16K */ // NAU8822 as Master
-		I2C_WriteNAU8822(7,  0x006);   /* 16K for internal filter coefficients */
-    
-		//I2C_WriteNAU8822(6,  0x14D);   /* Divide by 2, 48K */
+    I2C_WriteNAU8822(6,  0x1AD);   /* Divide by 6, 16K */
+    //I2C_WriteNAU8822(6,  0x001);   /* Divide by 1, FS and BCLK are driven as outputs, 16K */ // NAU8822 as Master
+    I2C_WriteNAU8822(7,  0x006);   /* 16K for internal filter coefficients */
+
+    //I2C_WriteNAU8822(6,  0x14D);   /* Divide by 2, 48K */
     //I2C_WriteNAU8822(7,  0x000);   /* 48K for internal filter coefficients */
-		
-		//I2C_WriteNAU8822(6,  0x14D);   /* Divide by 2, 48K */
+
+    //I2C_WriteNAU8822(6,  0x14D);   /* Divide by 2, 48K */
     //I2C_WriteNAU8822(7,  0x000);   /* 48K for internal filter coefficients */
 
     I2C_WriteNAU8822(10, 0x008);   /* DAC soft mute is disabled, DAC oversampling rate is 128x */
     I2C_WriteNAU8822(14, 0x108);   /* ADC HP filter is disabled, ADC oversampling rate is 128x */
-    I2C_WriteNAU8822(15, 0x1FF);   /* ADC left digital volume control */
-    I2C_WriteNAU8822(16, 0x1FF);   /* ADC right digital volume control */
+    I2C_WriteNAU8822(15, 0x1CF);   /* ADC left digital volume control */
+    I2C_WriteNAU8822(16, 0x1CF);   /* ADC right digital volume control */
+
+    I2C_WriteNAU8822(32, 0x120);   /* ALC Control 1, enable left channel ALC, max =17.25db; min = -12dB */
+    I2C_WriteNAU8822(33, 0x07B);   /* ALC Control 2 , set Hold time to 128ms*/
+    I2C_WriteNAU8822(34, 0x032);   /* ALC Control 3*/
+    I2C_WriteNAU8822(35, 0x018);   /* Noise Gate enable, threshold =-39dB, default, */
+
 
     I2C_WriteNAU8822(44, 0x033);   /* LMICN/LMICP is connected to PGA */
     I2C_WriteNAU8822(50, 0x001);   /* Left DAC connected to LMIX */
@@ -233,13 +274,17 @@ void SYS_Init(void)
     /* Enable PDMA0 module clock */
     CLK_EnableModuleClock(PDMA0_MODULE);
 
+    /* Enable DAC module clock */
+    CLK_EnableModuleClock(DAC_MODULE);
+
     /*---------------------------------------------------------------------------------------------------------*/
     /* Init I/O Multi-function                                                                                 */
     /*---------------------------------------------------------------------------------------------------------*/
 
     /* Set multi-function pins for UART0 RXD and TXD */
-    SET_UART0_RXD_PB12();
+    //SET_UART0_RXD_PB12();
     SET_UART0_TXD_PB13();
+    SET_DAC0_OUT_PB12();
 
     /* Set multi-function pins for I2S0 */
     SET_I2S0_BCLK_PI6();
@@ -257,29 +302,29 @@ void SYS_Init(void)
 
     /* Enable I2C2 clock pin (PD1) schmitt trigger */
     PD->SMTEN |= GPIO_SMTEN_SMTEN1_Msk;
-		
-		
-		/*---------------------------------------------------------------------------------------------------------*/
+
+
+    /*---------------------------------------------------------------------------------------------------------*/
     /* Enable TIMER module clock */
     CLK_EnableModuleClock(TMR0_MODULE);
 
     /* Select TIMER clock source */
     CLK_SetModuleClock(TMR0_MODULE, CLK_CLKSEL1_TMR0SEL_HIRC, 0);
-		
+
 }
 
 void PDMA_Init1(void)
 {
-	
+
     /* Rx description */
-    DMA_RXDESC[0].ctl = ((BUFF_LEN*2-1)<<PDMA_DSCT_CTL_TXCNT_Pos)|PDMA_WIDTH_16|PDMA_SAR_FIX|PDMA_DAR_INC|PDMA_REQ_SINGLE|PDMA_OP_SCATTER;
+    DMA_RXDESC[0].ctl = ((8000-1)<<PDMA_DSCT_CTL_TXCNT_Pos)|PDMA_WIDTH_32|PDMA_SAR_FIX|PDMA_DAR_INC|PDMA_REQ_SINGLE|PDMA_OP_SCATTER;
     DMA_RXDESC[0].src = (uint32_t)&I2S0->RXFIFO;
-    DMA_RXDESC[0].dest = (uint32_t)(&audio_io_buffer1);
+    DMA_RXDESC[0].dest = (uint32_t)(&audio_io_buffer1[0]);
     DMA_RXDESC[0].offset = (uint32_t)&DMA_RXDESC[1] - (PDMA0->SCATBA);
 
-    DMA_RXDESC[1].ctl = ((BUFF_LEN*2-1)<<PDMA_DSCT_CTL_TXCNT_Pos)|PDMA_WIDTH_16|PDMA_SAR_FIX|PDMA_DAR_INC|PDMA_REQ_SINGLE|PDMA_OP_SCATTER;
+    DMA_RXDESC[1].ctl = ((8000-1)<<PDMA_DSCT_CTL_TXCNT_Pos)|PDMA_WIDTH_32|PDMA_SAR_FIX|PDMA_DAR_INC|PDMA_REQ_SINGLE|PDMA_OP_SCATTER;
     DMA_RXDESC[1].src = (uint32_t)&I2S0->RXFIFO;
-    DMA_RXDESC[1].dest = (uint32_t)(&audio_io_buffer1[BUFF_LEN*1]);
+    DMA_RXDESC[1].dest = (uint32_t)(&audio_io_buffer2[0]);
     DMA_RXDESC[1].offset = (uint32_t)&DMA_RXDESC[0] - (PDMA0->SCATBA);
 
     /* Open PDMA channel 1 for I2S TX and channel 2 for I2S RX */
@@ -334,34 +379,36 @@ const std::vector<std::string> outputClass_ans = {
             "on",
             "off",
             "stop",
-            "go"}; 
-	*/					
+            "go"};
+	*/
 
 const char outputClass[12][8] = {
-        "Silence",
-        "Unknown",
-        "one",
-        "two",
-        "three",
-        "four",
-        "five",
-        "six",
-        "seven",
-        "eight",
-        "nine",
-        "zero"};
+    "Silence",
+    "Unknown",
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "zero"
+};
 
 const std::vector<std::string> outputClass_ans = {
-            "one",
-            "two",
-            "three",
-            "four",
-            "five",
-            "six",
-            "seven",
-            "eight",
-            "nine",
-            "zero"};  
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "zero"
+};
 
 /*
 const char outputClass[12][8] = {
@@ -379,8 +426,9 @@ const std::vector<std::string> outputClass_ans = {
             "two",
             "three",
             "four",
-           };						
+           };
 */
+
 
 
 
@@ -391,6 +439,7 @@ const std::vector<std::string> outputClass_ans = {
 /*---------------------------------------------------------------------------------------------------------*/
 int32_t main(void)
 {
+    uint16_t rx_cnt = 0;
     /* Unlock protected registers */
     SYS_UnlockReg();
 
@@ -418,12 +467,12 @@ int32_t main(void)
     I2S_Open(I2S0, I2S_MODE_SLAVE, 48000, I2S_DATABIT_16, I2S_STEREO, I2S_FORMAT_I2S);
 #else
     /* Open I2S0 interface and set to slave mode, mono channel, I2S format */
-		
+
     I2S_Open(I2S0, I2S_MODE_SLAVE, 16000, I2S_DATABIT_16, I2S_MONO, I2S_FORMAT_I2S);
 #endif
 
     /* Set PD3 low to enable phone jack on NuMaker board. */
-    SYS->GPD_MFP0 &= ~(SYS_GPD_MFP0_PD3MFP_Msk);
+    //SYS->GPD_MFP0 &= ~(SYS_GPD_MFP0_PD3MFP_Msk);
     GPIO_SetMode(PD, BIT3, GPIO_MODE_OUTPUT);
     PD3 = 0;
 
@@ -431,13 +480,15 @@ int32_t main(void)
     CLK_SetModuleClock(I2S0_MODULE, CLK_CLKSEL3_I2S0SEL_HXT, 0);
 
     /* Set MCLK and enable MCLK */
-		//I2S_EnableMCLK(I2S0, 4096000);
+    //I2S_EnableMCLK(I2S0, 4096000);
     I2S_EnableMCLK(I2S0, 12000000);
 
 #ifndef INPUT_IS_LIN
     /* NAU8822 will store data in left channel */
     I2S_SET_MONO_RX_CHANNEL(I2S0, I2S_MONO_LEFT);
 #endif
+
+    I2S_SET_MONO_RX_CHANNEL(I2S0, I2S_MONO_LEFT);
 
 #if NAU8822
     /* Initialize NAU8822 codec */
@@ -449,81 +500,135 @@ int32_t main(void)
     NAU88L25_Setup();
 #endif
 
+#ifdef SELF_TEST_SINEWAVE
+    /* Set the timer 0 trigger,enable DAC even trigger mode and enable D/A converter */
+    DAC_Open(DAC0, 0, DAC_TIMER0_TRIGGER);
 
+    /* The DAC conversion settling time is 1us */
+    DAC_SetDelayTime(DAC0, 1);
+
+    /* Set DAC 12-bit holding data */
+    DAC_WRITE_DATA(DAC0, 0, 0);
+
+    /* Clear the DAC conversion complete finish flag for safe */
+    DAC_CLR_INT_FLAG(DAC0, 0);
+
+    /* Enable the DAC interrupt.  */
+    DAC_ENABLE_INT(DAC0, 0);
+    NVIC_EnableIRQ(DAC_IRQn);
+
+    /* Configure Timer 0 frequency to 1000Hz and start it. */
+    TIMER_Open(TIMER0, TIMER_PERIODIC_MODE, 50000);//10K
+    TIMER_SetTriggerTarget(TIMER0, TIMER_TRG_TO_DAC);
+    TIMER_Start(TIMER0);
+#endif
 
     printf("\nThis sample code run keyword spotting inference\n");
     printf("KWS simple example; build timestamp: %s:%s\n", __DATE__, __TIME__);
 
-	  	
-		int recordingWin = 49;  //DSCNN, no need
-		int averagingWindowLen = 1;
-		int detectionThreshold = 40;
-		
-		/*
-		int recordingWin = 25; //DNN, no need
-		int averagingWindowLen = 1;
-		int detectionThreshold = 20;
-		*/
-		
-		KWS kws(averagingWindowLen, audio_buffer);
+    int recordingWin = 49;  //DSCNN, no need
+    int averagingWindowLen = 1;
+    int detectionThreshold = 40;
 
-		
+    /*
+    int recordingWin = 25; //DNN, no need
+    int averagingWindowLen = 1;
+    int detectionThreshold = 20;
+    */
 
-		PDMA_Init1();
+    KWS kws(averagingWindowLen, audio_buffer);
+    PDMA_Init1();
 
     /* Enable I2S Rx function */
     I2S_ENABLE_RXDMA(I2S0);
     I2S_ENABLE_RX(I2S0);
 
-    /* Enable I2S Tx function */
-    I2S_ENABLE_TXDMA(I2S0);
-    I2S_ENABLE_TX(I2S0);
-		
+
+    GPIO_SetMode(PH, BIT4|BIT5|BIT6,GPIO_MODE_OUTPUT ) ;
+    GPIO_SetSlewCtl(PH, BIT4|BIT5|BIT6,GPIO_SLEWCTL_FAST);
+
+    GPIO_SetMode(PE, BIT13, GPIO_MODE_OUTPUT ) ;
+    GPIO_SetSlewCtl(PE, BIT13,GPIO_SLEWCTL_FAST);
+    LED_RED  =0;
+
 
     while(1)
     {
-			   
+
+
         if(s_u8CopyData)
         {
-					    //printf("=================================\n");
-					    //printf("Extracting features.. \r\n");
-              
-							kws.ExtractFeatures();  // Extract MFCC features.
-		    
-              //printf("Classifying..\r\n");
-              kws.Classify();  // Classify the extracted features.
-		          
-              int maxIndex = kws.GetTopClass(kws.output);
-		          
-              //printf("Detected %s (%d%%)\r\n", outputClass[maxIndex],
-              //    (static_cast<int>(kws.output[maxIndex]*100)));
-					
-					    //printf("***  Averaging predictions.\r\n");
-              kws.AveragePredictions();
-					    int maxIndex_av = kws.GetTopClass(kws.averagedOutput);
-					
-					    if(kws.averagedOutput[maxIndex_av]*100 >= detectionThreshold) {
-								//printf("**** Classified: %s (%d%%)\r\n", outputClass[maxIndex_av],
+            //printf("=================================\n");
+            //printf("Extracting features.. \r\n");
+            printf("Current data buf:%x\n", (uint32_t)(ptraudio_buffer));
+            kws.ExtractFeatures();  // Extract MFCC features.
+
+            //printf("Classifying..\r\n");
+            kws.Classify();  // Classify the extracted features.
+
+            int maxIndex = kws.GetTopClass(kws.output);
+
+            //printf("Detected %s (%d%%)\r\n", outputClass[maxIndex],
+            //    (static_cast<int>(kws.output[maxIndex]*100)));
+
+            //printf("***  Averaging predictions.\r\n");
+            kws.AveragePredictions();
+            int maxIndex_av = kws.GetTopClass(kws.averagedOutput);
+
+            if(kws.averagedOutput[maxIndex_av]*100 >= detectionThreshold) {
+                //printf("**** Classified: %s (%d%%)\r\n", outputClass[maxIndex_av],
                 //  (static_cast<int>(kws.averagedOutput[maxIndex_av]*100)));
-							
-								if(std::find(outputClass_ans.begin(), outputClass_ans.end(), outputClass[maxIndex_av]) != outputClass_ans.end()){
-							      printf("Trigger %s\r\n", outputClass[maxIndex_av]);	
-									  printf("**** Classified: %s (%d%%)\r\n", outputClass[maxIndex_av], (static_cast<int>(kws.averagedOutput[maxIndex_av]*100))); 
-							      //PDMA_Close(PDMA0);
-									  //TIMER_Delay(TIMER0, 1000000);
-							  } 
-							}
-					    
-							u8Count++;
-					    s_u8CopyData = 0;
-					    s_u8pdmaIRQReIn = 1; 
-					    
-							if(u8Count >= (kws.numFrames-1))
-								u8Count = 0;
-							
-							
+
+                if(std::find(outputClass_ans.begin(), outputClass_ans.end(), outputClass[maxIndex_av]) != outputClass_ans.end()) {
+                    printf("Trigger %s\r\n", outputClass[maxIndex_av]);
+                    printf("**** Classified: %s (%d%%)\r\n", outputClass[maxIndex_av], (static_cast<int>(kws.averagedOutput[maxIndex_av]*100)));
+                    //PDMA_Close(PDMA0);
+                    //TIMER_Delay(TIMER0, 1000000);
+                }
+            }
+
+            u8Count++;
+            s_u8CopyData = 0;
+            s_u8pdmaIRQReIn = 1;
+
+            if(u8Count >= (kws.numFrames-1))
+                u8Count = 0;
+
+
         } //s_u8CopyData
+
+#ifdef CHECK_PINGPONG
+//Keep these code temporarily for debug purpose
+			   if(s_u8CopyData)
+        {
+
+					  if(rx_cnt<5)
+            {
+						    s_u8CopyData = 0;
+							  rx_cnt++;
+							  printf("I2S Rx %d times\r\n",rx_cnt);
+
+
+						}
+
+					  if(rx_cnt>=5)
+            {
+							     //printf("Current data buf:%x\n", (uint32_t)(ptraudio_buffer));
+							 for(uint16_t i = 7800; i < 8000; i++)
+               {
+                    int16_t audio_buffer_16bit0 =  (int16_t)(ptraudio_buffer[i]&0x0000FFFF);
+			              int16_t  audio_buffer_16bit1 = (int16_t)((ptraudio_buffer[i]>>16)&0x0000FFFF);
+						        printf("%x, %d, %d \n", (uint32_t)(ptraudio_buffer), 2*i, audio_buffer_16bit0);
+			              printf("%x, %d, %d \n", (uint32_t)(ptraudio_buffer), 2*i+1, audio_buffer_16bit1);
+                }
+
+				     }
+
+             s_u8CopyData = 0;
+
+        } //s_u8CopyData
+#endif				
     } //while
 }
 
-}
+
