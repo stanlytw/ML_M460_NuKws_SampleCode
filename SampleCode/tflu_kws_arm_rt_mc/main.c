@@ -115,7 +115,7 @@ void PDMA0_IRQHandler(void)
     if (u32Status & 0x2) {
         if (PDMA_GET_TD_STS(PDMA0) & 0x2) {          /* channel 1 done */
             /* Copy RX data to TX buffer */
-            LED_RED = 0;
+            //LED_RED = 0;
             if(PDMA0->CURSCAT[1] == (uint32_t)&DMA_RXDESC[0])
             {
                 for (int i=0; i<BUFF_LEN; i++) {
@@ -131,7 +131,7 @@ void PDMA0_IRQHandler(void)
                 ptraudio_buffer = (uint32_t*)(&audio_io_buffer2[0]);
             }
             s_u8CopyData = 1;
-            LED_RED = 1;
+            //LED_RED = 1;
             PDMA_CLR_TD_FLAG(PDMA0, PDMA_TDSTS_TDIF1_Msk);
 
         }
@@ -560,10 +560,11 @@ int32_t main(void)
         {
 
             //printf("Current data buf:%x\n", (uint32_t)(ptraudio_buffer));
+					  LED_RED  =1;
             kws.ExtractFeatures();  // Extract MFCC features.
-
+            LED_RED  =0;
             kws.Classify();  // Classify the extracted features.
-
+           
             int maxIndex = kws.GetTopClass(kws.output);
 
             //printf("Detected %s (%d%%)\r\n", outputClass[maxIndex],
@@ -572,10 +573,12 @@ int32_t main(void)
             //printf("***  Averaging predictions.\r\n");
             kws.AveragePredictions();
             int maxIndex_av = kws.GetTopClass(kws.averagedOutput);
+					
+					  printf("kws.averagedOutput=%f\r\n", kws.averagedOutput[maxIndex_av]*100);
 
             if(kws.averagedOutput[maxIndex_av]*100 >= detectionThreshold) {
-                //printf("**** Classified: %s (%d%%)\r\n", outputClass[maxIndex_av],
-                //  (static_cast<int>(kws.averagedOutput[maxIndex_av]*100)));
+                printf("**** Classified: %s (%d%%)\r\n", outputClass[maxIndex_av],
+                  (static_cast<int>(kws.averagedOutput[maxIndex_av]*100)));
 
                 if(std::find(outputClass_ans.begin(), outputClass_ans.end(), outputClass[maxIndex_av]) != outputClass_ans.end()) {
                     printf("Trigger %s\r\n", outputClass[maxIndex_av]);

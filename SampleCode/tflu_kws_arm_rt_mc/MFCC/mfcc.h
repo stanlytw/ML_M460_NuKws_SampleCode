@@ -68,6 +68,9 @@ private:
       ~MFCC() = default;
 
       void MfccCompute(const int16_t * data, float* mfccOut);
+	
+
+	
 };
 
 #endif

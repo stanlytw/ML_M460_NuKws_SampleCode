@@ -104,6 +104,7 @@ bool Model::Init()
     }
 
     this->_inited = true;
+		printf(" interpreter.arena_used_bytes:%d\n",  this->_interpreter->arena_used_bytes());
     return true;
 }
 

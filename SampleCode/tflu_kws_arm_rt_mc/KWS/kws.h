@@ -61,7 +61,7 @@ public:
 		//save the half for frameLen > frameShift
 		//int16_t * audio_half;
 		int16_t  audio_half[320];
-		
+    int numInputDims[4];
 		
 
 protected:

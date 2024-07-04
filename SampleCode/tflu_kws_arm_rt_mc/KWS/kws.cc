@@ -51,7 +51,18 @@ void KWS::InitKws()
         printf("Warning: model has not been initialised\r\n");
         model->Init();
     }
-
+    
+		numInputDims[0] = model->GetInputShape()->data[0]; //Check input data  1x128x3 
+    numInputDims[1] = model->GetInputShape()->data[1];
+    numInputDims[2] = model->GetInputShape()->data[2];
+    numInputDims[3] = model->GetInputShape()->data[3];
+    numOutClasses = model->GetOutputShape()->data[1];  // Output shape should be [1, numOutClasses].
+		
+		 // Following are for debug purposes.
+    printf("Initialising VWW model..\r\n");
+    printf("numInputDims: %d-%d-%d-%d\r\n", numInputDims[0], numInputDims[1], numInputDims[2], numInputDims[3]);
+    printf("numOutClasses: %d\r\n", numOutClasses);
+		
     numMfccFeatures = model->GetNumMfccFeatures();
     numFrames = model->GetNumFrames();
     frameLen = model->GetFrameLen();
